@@ -1,50 +1,30 @@
-
-pipeline{
-    tools{
-       
-        maven 'mymaven'
+pipeline {
+    agent any
+    tools {
+        maven 'mvn'
     }
-	agent any
-      stages{
-           stage('Checkout the code'){
-	    
-               steps{
-		 echo 'cloning the repo'
-                 git 'https://github.com/Sonal0409/DevOpsClassCodes.git'
-              }
-          }
-          stage('Compile'){
-             
-              steps{
-                  echo 'complie the code again..'
-                  sh 'mvn compile'
-	      }
-          }
-          stage('CodeReview'){
-		  
-              steps{
-		    
-		  echo 'codeReview'
-                  sh 'mvn pmd:pmd'
-              }
-          }
-           stage('UnitTest'){
-		  
-              steps{
-	         
-                  sh 'mvn test'
-              }
-          
-          }
-        
-          stage('Package'){
-		  
-              steps{
-		  
-                  sh 'mvn package'
-              }
-          }
-	     
-          
-      }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/samirkesare/DevOpsCodeDemo.git'
+            }
+        }
+        stage('Build Artifact') {
+            steps {
+                sh 'mvn clean install'
+                echo "Build Artifact done"
+            }
+        }
+        stage('Publish Artifact') {
+            steps {
+                archiveArtifacts artifacts: '**/*.war', followSymlinks: false
+                echo "Publishing Artifact done"
+            }
+        }
+        stage('Deploy war file'){
+            steps{
+            deploy adapters: [tomcat9(credentialsId: 'first_project', path: '', url: 'http://13.114.143.171:8080/')], contextPath: null, onFailure: false, war: '**/*.war'
+            }
+        }
+    }
 }
